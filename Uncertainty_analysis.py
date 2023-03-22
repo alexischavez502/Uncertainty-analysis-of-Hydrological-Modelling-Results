@@ -12,12 +12,13 @@ from matplotlib import style
 import numpy as np
 import Data_driven_model
 
-Data_driven_model.main()
+#In case of activating the Data Driven Model, activate the following line:
+#Data_driven_model.main()
 #Verificar el directorio actual
 directory= os.getcwd()
 print(directory)
 
-#Cambiar al directorio de trabajo
+#Cambiar al directorio de trabajo/Change Directory
 ##INGRESAR SU CARPETA!!
 os.chdir(r"D:\KU LEUVEN\Courses\Integrated Project\Conceptual")
 #os.chdir(r"D:\KU LEUVEN\Courses\Integrated Project\WEAP_Inputs\Results")
