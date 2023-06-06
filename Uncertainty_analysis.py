@@ -24,11 +24,11 @@ os.chdir(r"D:\KU LEUVEN\Courses\Integrated Project\Conceptual")
 #os.chdir(r"D:\KU LEUVEN\Courses\Integrated Project\WEAP_Inputs\Results")
 #Uncertainty analysis
 #Read csv file with time series of observed and model discharges (data)
-pro_id = 'Jubones - Ecuador' # example
+pro_id = 'Jubones - Ecuador' # example name 
 
 file_name="JubonesM_result_VAL.csv"
 #lamda= float(input("Please insert value of lamda between 0 and 1: "))
-lamda=0.20   #change lamba value
+lamda=0.20   #change lamba value: range of lamnda between 0.20-0.25, best suggested 0.25
 
 if file_name[-3:]=='csv':
     # Check decimal in .csv file (comma or dot)
@@ -59,11 +59,14 @@ data['residuals2']=data['residual'].apply(residual2)
 data['BC_Obs']=data['Obsflow_[m3/s]'].apply(BCO)
 data['BC_Sim']=data['Simflow_[m3/s]'].apply(BCO)
 data['BCResidual']=data['BC_Sim'] - data['BC_Obs']
-data['BIASres']= data['Simflow_[m3/s]']-data['Obsflow_[m3/s]']
+data['BIASres']= data['Obsflow_[m3/s]']- data['Simflow_[m3/s]']
+data['BIASres_2']=data['BIASres']**2
 print (data)
 
 n=len(data)
+n1=len(data['Obsflow_[m3/s]'])
 pbias=data['BIASres'].sum()
+bias=data['BIASres_2'].sum()
 pbias1=data['Obsflow_[m3/s]'].sum()
 ##STATISTICS CALCULATIONS
 ME= data['residual'].mean() #Mean errors  [m3/s]
@@ -74,11 +77,13 @@ VarObs=data['Obsflow_[m3/s]'].var()  #Variance of observed flow [m3/s]^2
 StdBC=data['BCResidual'].std()  #Standar deviation of the Box -Cox residuals Sigma
 RMSE=math.sqrt(MSE)
 EF=1-(MSE/VarObs)  #[-] Efficiency of the model
+BIAS=bias/n1
+PBIAS=(100*pbias)/n1
 
-PBIAS=100*(1/pbias1)*pbias
 print("MSE value is:" , MSE)
 print("RMSE value is:" , RMSE)
 print("Efficiency of the model is: ",EF)
+print('BIAS of the model is: ',BIAS)
 print("PBIAS of the model is: ", PBIAS)
 
 ##Interval of confidence:
@@ -104,8 +109,9 @@ data['Sim+2Sigma']=data['BC+2sigma'].apply(inverseBC)
 data['Sim-2Sigma']=data['BC-2sigma'].apply(inverseBC)
 
 #%%PLOT OF RESULTS
+#If style is used, take out the # of the lines
 ##Cumulative flow
-style.use('ggplot')
+#style.use('ggplot')
 plt.title("Cummulative-Rippl diagram")
 plt.plot(data['Obscumulative'],color='red', linewidth=0.5, label='Obscumulative')
 plt.plot(data['Simcumulative'],color='blue', linewidth=0.5, linestyle='--',label='simcumulative')
@@ -116,7 +122,7 @@ plt.legend()
 plt.show()
 
 #Heteroscedasticity
-style.use('ggplot')
+#style.use('ggplot')
 data.plot.scatter(x='Obsflow_[m3/s]',y='Simflow_[m3/s]',s=5) #s is for the size
 x = y = plt.xlim()
 plt.plot(x, y, linestyle='--', color='b', lw=2, scalex=False, scaley=False, label='Bisector')
@@ -126,7 +132,7 @@ plt.show()
 plt.clf()
 
 ##Homoscedaasticity Box - Cox plot
-style.use('ggplot')
+#style.use('ggplot')
 x=data.BC_Obs
 y=data.BC_Sim
 plt.scatter(x,y, s=5)
@@ -134,7 +140,7 @@ trend=np.polyfit(x,y,1)
 poly1d_fn=np.poly1d(trend)
 x = y = plt.xlim()
 plt.plot(x, y, linestyle='--', color='b', lw=2, scalex=False, scaley=False, label='Bisector')
-#plt.plot(x,poly1d_fn(x),'--',  color='m', lw=3,label='y=%.6fx+%.6f'% (trend[0],trend[1]))
+#plt.plot(x,poly1d_fn(x),'--',  color='m', lw=3,label='y=%.6fx+%.6f'% (trend[0],trend[1])) # to see the equation of the trend
 plt.plot(x,poly1d_fn(x),'--',  color='m', lw=3,label='mean deviation')
 plt.xlabel('Qobs (m3/s)')
 plt.ylabel('Qsim (m3/s)')
@@ -144,19 +150,21 @@ plt.show()
 plt.clf()
 
 ##Time series with 95% interval +2sigma
-style.use('ggplot')
-plt.title(pro_id)
-plt.plot(data['Sim+2Sigma'],color='red', linewidth=0.25, linestyle='--', label='Upperlimit')
-plt.plot(data['Sim-2Sigma'],color='red', linewidth=0.25, linestyle='--',label='Lowerlimit')
+#style.use('ggplot')
+plt.title(pro_id +' - '+'Obs vs SWAT')
+plt.plot(data['Sim+2Sigma'],color='red', linewidth=0.5, linestyle='--', label='Upperlimit')
+plt.plot(data['Sim-2Sigma'],color='red', linewidth=0.5, linestyle='--',label='Lowerlimit')
 plt.plot(data['Obsflow_[m3/s]'], color='blue', linewidth=1, label='Obsflow')
-plt.plot(data['Simflow_[m3/s]'],color='#FFA500', linewidth=1,label='Simflow')
-plt.xticks([0,n/4,n/2,3*n/4,n])   #tick spacing, change according to size of dataframe
+plt.plot(data['Simflow_[m3/s]'],color='#ff8000', linewidth=1.2,label='Simflow')
+plt.fill_between(data.index,data['Sim+2Sigma'],data['Sim-2Sigma'],color='grey',alpha=0.5) # Interval uncertainty range
+plt.xticks([0,n/4,n/2,3*n/4,n-1])   #tick spacing, change according to size of dataframe
 plt.xlabel('Time')
 plt.ylabel('Q (m3/s)')
+plt.suptitle("PBIAS= " + str(round(PBIAS,2)) + "   "+"RMSE= " + str(round(RMSE,2))+"   "+"NSE= " + str(round(EF,2)), fontsize=9)
 plt.legend()
 plt.show()
 
-##Time series scale
+##Time series scale - Zoom to a region of the time series
 style.use('ggplot')
 plt.title(pro_id)
 plt.plot(data['Sim+2Sigma'],color='red', linewidth=0.25, linestyle='--', label='Upperlimit')
@@ -164,7 +172,7 @@ plt.plot(data['Sim-2Sigma'],color='red', linewidth=0.25, linestyle='--',label='L
 plt.plot(data['Obsflow_[m3/s]'], color='blue', linewidth=1, label='Obsflow')
 plt.plot(data['Simflow_[m3/s]'],color='#FFA500', linewidth=1,label='Simflow')
 plt.xticks([0,n/4,n/2,3*n/4,n])   #tick spacing, change according to size of dataframe
-plt.xlim([500,1000])
+plt.xlim([500,1000]) ## change according the region to be zoom in
 plt.xlabel('Time')
 plt.ylabel('Q (m3/s)')
 plt.legend()
