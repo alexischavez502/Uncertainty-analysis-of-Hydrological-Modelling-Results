@@ -19,21 +19,19 @@ directory= os.getcwd()
 print(directory)
 
 #Cambiar al directorio de trabajo/Change Directory
-##INGRESAR SU CARPETA!!
+##
 os.chdir(r"D:\KU LEUVEN\Courses\Integrated Project\Conceptual")
-#os.chdir(r"D:\KU LEUVEN\Courses\Integrated Project\WEAP_Inputs\Results")
 #Uncertainty analysis
 #Read csv file with time series of observed and model discharges (data)
 pro_id = 'Jubones - Ecuador' # example name 
 
-file_name="JubonesM_result_VAL.csv"
+file_name="JubonesM_result_VAL.xlsx"
 #lamda= float(input("Please insert value of lamda between 0 and 1: "))
 lamda=0.20   #change lamba value: range of lamnda between 0.20-0.25, best suggested 0.25
 
-if file_name[-3:]=='csv':
-    # Check decimal in .csv file (comma or dot)
-    # Check headings
-    data= pd.read_csv(file_name, decimal='.',index_col=0,na_values='-')
+if file_name[-3:]=='lsx':
+    #read file
+    data= pd.read_excel(file_name, decimal='.',index_col=0,na_values='-')
     
 else: print("format incorrect")
 
@@ -79,7 +77,6 @@ RMSE=math.sqrt(MSE)
 EF=1-(MSE/VarObs)  #[-] Efficiency of the model
 BIAS=bias/n1
 PBIAS=(100*pbias)/n1
-
 print("MSE value is:" , MSE)
 print("RMSE value is:" , RMSE)
 print("Efficiency of the model is: ",EF)
@@ -165,16 +162,30 @@ plt.legend()
 plt.show()
 
 ##Time series scale - Zoom to a region of the time series
-style.use('ggplot')
+#style.use('ggplot')
 plt.title(pro_id)
 plt.plot(data['Sim+2Sigma'],color='red', linewidth=0.25, linestyle='--', label='Upperlimit')
 plt.plot(data['Sim-2Sigma'],color='red', linewidth=0.25, linestyle='--',label='Lowerlimit')
 plt.plot(data['Obsflow_[m3/s]'], color='blue', linewidth=1, label='Obsflow')
-plt.plot(data['Simflow_[m3/s]'],color='#FFA500', linewidth=1,label='Simflow')
-plt.xticks([0,n/4,n/2,3*n/4,n])   #tick spacing, change according to size of dataframe
-plt.xlim([500,1000]) ## change according the region to be zoom in
+plt.plot(data['Simflow_[m3/s]'],color='#ff8000', linewidth=1,label='Simflow')
+plt.fill_between(data.index,data['Sim+2Sigma'],data['Sim-2Sigma'],color='grey',alpha=0.5)
+#plt.xticks([0,n/4,n/2,3*n/4,n-1])   #tick spacing, change according to size of dataframe
+plt.xlim([13000,13600])
+plt.xticks([13000,13600]) 
 plt.xlabel('Time')
 plt.ylabel('Q (m3/s)')
 plt.legend()
 plt.show()
 
+##Time series SIM AND OBS
+#style.use('ggplot')
+plt.title(pro_id +' - '+'Obs vs '+str(model))
+plt.plot(data['Obsflow_[m3/s]'], color='blue', linewidth=1, label='Obsflow')
+plt.plot(data['Simflow_[m3/s]'],color='#ff8000', linewidth=1.2,label='Simflow')
+#plt.xticks([0,n/4,n/2,3*n/4,n-1])   #tick spacing, change according to size of dataframe
+plt.xlabel('Time')
+plt.ylabel('Q (m3/s)')
+plt.suptitle("PBIAS= " + str(round(PBIAS,2)) + "   "+"RMSE= " + str(round(RMSE,2))+"   "+"NSE= " + str(round(EF,2)), fontsize=9)
+plt.legend()
+#plt.savefig(out+'\HEC_Eval.svg',dpi=300)
+plt.show()
