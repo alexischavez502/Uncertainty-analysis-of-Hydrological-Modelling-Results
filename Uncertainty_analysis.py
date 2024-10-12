@@ -24,7 +24,7 @@ os.chdir(r"D:\KU LEUVEN\Courses\Integrated Project\Conceptual")
 #Uncertainty analysis
 #Read csv file with time series of observed and model discharges (data)
 pro_id = 'Jubones - Ecuador' # example name 
-
+model='HVM' #Give name of the model evaluated, it is used as label
 file_name="JubonesM_result_VAL.xlsx"
 #lamda= float(input("Please insert value of lamda between 0 and 1: "))
 lamda=0.20   #change lamba value: range of lamnda between 0.20-0.25, best suggested 0.25
